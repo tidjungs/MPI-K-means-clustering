@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   // Data structures in all processes.
   //
   // The sites assigned to this process.
-  float* sites;  
+  float* sites;
   assert(sites = malloc(sites_per_proc * d * sizeof(float)));
   // The sum of sites assigned to each cluster by this process.
   // k vectors of d elements.
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
   // The cluster assignments for each site.
   int* labels;
   assert(labels = malloc(sites_per_proc * sizeof(int)));
-  
+
   //
   // Data structures maintained only in root process.
   //
@@ -121,11 +121,11 @@ int main(int argc, char** argv) {
     all_sites = create_rand_nums(d * sites_per_proc * nprocs);
     // Take the first k sites as the initial cluster centroids.
     for (int i = 0; i < k * d; i++) {
-      centroids[i] = all_sites[i]; 
+      centroids[i] = all_sites[i];
     }
-    print_centroids(centroids, k, d);
+    // print_centroids(centroids, k, d);
     assert(grand_sums = malloc(k * d * sizeof(float)));
-    assert(grand_counts = malloc(k * sizeof(int));
+    assert(grand_counts = malloc(k * sizeof(int)));
     assert(all_labels = malloc(nprocs * sites_per_proc * sizeof(int)));
   }
 
@@ -133,9 +133,9 @@ int main(int argc, char** argv) {
   MPI_Scatter(all_sites,d*sites_per_proc, MPI_FLOAT, sites,
               d*sites_per_proc, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-  
+
   float norm = 1.0;  // Will tell us if centroids have moved.
-  
+
   while (norm > 0.00001) { // While they've moved...
 
     // Broadcast the current cluster centroids to all processes.
@@ -162,19 +162,19 @@ int main(int argc, char** argv) {
       // Root process computes new centroids by dividing sums per cluster
       // by count per cluster.
       for (int i = 0; i<k; i++) {
-	for (int j = 0; j<d; j++) {
-	  int dij = d*i + j;
-	  grand_sums[dij] /= grand_counts[i];
-	}
+        for (int j = 0; j<d; j++) {
+          int dij = d*i + j;
+          grand_sums[dij] /= grand_counts[i];
+        }
       }
       // Have the centroids changed much?
       norm = distance2(grand_sums, centroids, d*k);
-      printf("norm: %f\n",norm);
+      // printf("norm: %f\n",norm);
       // Copy new centroids from grand_sums into centroids.
       for (int i=0; i<k*d; i++) {
-	centroids[i] = grand_sums[i];
+	      centroids[i] = grand_sums[i];
       }
-      print_centroids(centroids,k,d);
+      // print_centroids(centroids,k,d);
     }
     // Broadcast the norm.  All processes will use this in the loop test.
     MPI_Bcast(&norm, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
 
   // Root can print out all sites and labels.
   if ((rank == 0) && 1) {
-    float* site = all_sites; 
+    float* site = all_sites;
     for (int i = 0;
 	 i < nprocs * sites_per_proc;
 	 i++, site += d) {
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
       printf("%4d\n", all_labels[i]);
     }
   }
-      
+
   MPI_Finalize();
 
 }
